@@ -1,0 +1,19 @@
+left, top, label {
+	background: #1B2126;
+}
+
+button {
+	cursor: hand2;
+}
+
+button, entry {
+	highlightbackground: #1B2126;
+	background: #21313f;
+	foreground: white;
+}
+
+listbox {
+	highlightbackground: #1B2126;
+	background: #21313f;
+	foreground: white;
+}
