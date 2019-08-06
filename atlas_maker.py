@@ -1,5 +1,6 @@
 import logging
-from PIL import Image, ImageDraw, ImageChops
+from PIL import Image, ImageChops
+from psd_tools import PSDImage
 
 
 def print_danger(text):
@@ -23,20 +24,70 @@ def trim(image):
 
 
 class ImageSource:
-    def __init__(self, file_path):
+    def __init__(self, file_path=""):
         self.file_name = file_path[file_path.rfind("/") + 1:]
         self.file_path = file_path
 
-        img = Image.open(file_path)
+        self.file = None
+        self.loaded = False
+
+        self.width = 0
+        self.height = 0
+
+    def load(self):
+        img = Image.open(self.file_path)
         self.file = trim(img)
         img.close()
 
         self.width = self.file.width
         self.height = self.file.height
 
+        self.loaded = True
+
+    def assign_image(self, img, trimming=True):
+        if trimming:
+            self.file = trim(img)
+        else:
+            self.file = img
+
+        self.width = self.file.width
+        self.height = self.file.height
+
+        self.loaded = True
+
     def close(self):
         self.file.close()
 
+
+class PSDSouce:
+    def __init__(self, file_path, trimming=True):
+        self.file_name = file_path[file_path.rfind("/") + 1:]
+        self.file_path = file_path
+        self.trimming = trimming
+
+        self.images = []
+
+    def load(self):
+        psd_file = PSDImage.load(self.file_path)
+
+        self.scan_layer(psd_file.layers)
+
+    def scan_layer(self, layers):
+        for i, layer in enumerate(layers):            
+            if layer.is_group():
+                self.scan_layer(layer.layers)
+            else:
+                pil_img = layer.as_PIL()
+                if pil_img is None:
+                    continue
+
+                path = self.file_path + str(i)
+                image = ImageSource(path)
+                image.assign_image(pil_img, trimming=self.trimming)
+
+                pil_img.close()
+
+                self.images.append(image)
 
 class Atlas:
     def __init__(self, max_size=2048, padding=2):
@@ -168,16 +219,29 @@ class Atlas:
 
 
 class AtlasMaker:
-    def __init__(self, images, max_size=2048, padding=2):
+    def __init__(self, max_size=2048, padding=2):
         self.max_size = max_size
         self.padding = padding
 
         self.atlases = []
-        self.images = [ImageSource(image) for image in images]
+        self.images = []
         self.unused_images = set()
+
+    def add_images(self, *images):
+        for image in images:
+            if type(image) == str:
+                self.images.append(ImageSource(image))
+                self.images[-1].load()
+            elif type(image) == ImageSource:
+                if not image.loaded:
+                    image.load()
+
+                self.images.append(image)
 
     def make(self):
         for image in self.images:
+            # image.file.save("test-%s.png" % random.randint(1, 100))
+            # print(image.width, image.height)
             placed = False
 
             if image.width > self.max_size or image.height > self.max_size:

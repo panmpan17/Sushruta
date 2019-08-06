@@ -1,12 +1,13 @@
-left, top, label {
+body, left, top, label {
 	background: #1B2126;
+	highlightbackground: #1B2126;
 }
 
-button {
+.btn {
 	cursor: hand2;
 }
 
-button, entry {
+.btn, entry {
 	highlightbackground: #1B2126;
 	background: #21313f;
 	foreground: white;

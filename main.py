@@ -3,8 +3,7 @@ import re
 import tkinter
 import subprocess
 from tkinter import filedialog, messagebox
-from atlas_maker import AtlasMaker
-from PIL import ImageTk, Image, ImageTk
+from atlas_maker import AtlasMaker, PSDSouce
 import tkouter
 
 image_re = r".+\.png|.+\.jpg|.+\.jpeg"
@@ -129,6 +128,7 @@ class ButtonsView(tkouter.TkOutWidget):
 
     max_size = tkouter.StringField(default='2048')
     padding = tkouter.StringField(default='2')
+    trimming = tkouter.BoolField(default=True)
 
     def __init__(self, *args, **kwargs):
         self.list_view = None
@@ -139,7 +139,7 @@ class ButtonsView(tkouter.TkOutWidget):
     def assign_list_view(self, list_view):
         self.list_view = list_view
 
-    def ask_files(self, *args):
+    def add_images(self, *args):
         filenames = filedialog.askopenfilenames(
             initialdir=os.getcwd(),
             title="Select Image",
@@ -196,6 +196,42 @@ class ButtonsView(tkouter.TkOutWidget):
         if len(self.images) > 0:
             self.export_btn.config(state="normal")
 
+    def export_psd(self, *args):
+        filenames = filedialog.askopenfilenames(
+            initialdir=os.getcwd(),
+            title="Select PSD file",
+            filetypes=(("PSD", "*.psd"), ))
+
+        try:
+            max_size = int(self.max_size)
+        except ValueError:
+            max_size = 2048
+        try:
+            padding = int(self.padding)
+        except ValueError:
+            padding = 2
+
+        maker = AtlasMaker(max_size, padding)
+        for filename in filenames:
+            psd = PSDSouce(filename, trimming=self.trimming)
+            psd.load()
+            maker.add_images(*psd.images)
+
+        maker.make()
+        maker.save()
+
+    def add_psd(self, *args):
+        # filenames = filedialog.askopenfilenames(
+        #     initialdir=os.getcwd(),
+        #     title="Select PSD file",
+        #     filetypes=(("PSD", "*.psd"), ))
+
+        # for filename in filenames:
+        #     psd = PSDSouce(filename)
+        #     psd.load()
+        #     maker.add_images(*psd.images)
+        pass
+
     def delete_selected(self, *args):
         selection = list(self.list_view.curselection())
         selection.reverse()
@@ -228,7 +264,8 @@ class ButtonsView(tkouter.TkOutWidget):
         except ValueError:
             padding = 2
 
-        maker = AtlasMaker(self.images, max_size, padding)
+        maker = AtlasMaker(max_size, padding)
+        maker.add_images(*self.images)
         maker.make()
         maker.save()
 

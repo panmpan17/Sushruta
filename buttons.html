@@ -4,12 +4,16 @@
         <link rel="stylesheet" type="text/css" href="style.css" />
         <menu>
             <menu label="File">
-                <menu label="Adding Image ..." underline="0">
-                    <command command="{self.ask_files}">Add Images</command>
+                <menu label="Adding Image ...">
+                    <command command="{self.add_images}">Add Images</command>
                     <command command="{self.scan_directory}">Scan Directory</command>
                     <command command="{self.scan_directory_deep}">Deep Scan Directory</command>
                 </menu>
-                <menu label="Remove Image ..." underline="0">
+                <menu label="PSD ...">
+                    <command>Exporting PSD Directly</command>
+                    <command>Add PSD</command>
+                </menu>
+                <menu label="Remove Image ...">
                     <command command="{self.delete_selected}" accelerator="BackSpace">Delete Selected</command>
                     <command command="{self.clear_images}" accelerator="Command+BackSpace">Clear All Image</command>
                 </menu>
@@ -22,9 +26,11 @@
         <top>
             <button activebackground="#21313f" class="btn" width="25" command="{self.scan_directory_deep}">Deep Scan Directory</button>
             <button class="btn" width="15" command="{self.scan_directory}">Scan Directory</button>
-            <button class="btn" width="15" command="{self.ask_files}">Add Images</button>
-        </top>
-        <top>
+            <button class="btn" width="15" command="{self.add_images}">Add Images</button>
+
+            <button class="btn" width="25" command="{self.export_psd}">Exporting PSD Directly</button>
+            <button class="btn" width="15" command="{self.add_psd}">Add PSD</button>
+
             <button class="btn" width="25" command="{self.delete_selected}">Delete Selected</button>
             <button class="btn" width="15" command="{self.clear_images}">Clear Images</button>
             <left>
@@ -34,6 +40,10 @@
             <left>
                 <label fg="#CCC">Padding</label>
                 <entry width="15" textvariable="{self.padding.var}" />
+            </left>
+            <left>
+                <label>Trimming</label>
+                <button type="checkbutton" variable="{self.trimming.var}"></button>
             </left>
             <button name="export_btn" class="btn" width="25" command="{self.export}" state="disabled">Export Atlas</button>
             <button class="btn" width="15" command="{self.quit}">Quit</button>
