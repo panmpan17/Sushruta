@@ -1,4 +1,6 @@
 import logging
+import os
+
 from PIL import Image, ImageChops
 from psd_tools import PSDImage
 
@@ -11,7 +13,7 @@ def print_danger(text):
     print("\033[0;31m" + text + "\x1b[0m")
 
 
-def trim(image):
+def trim_img(image):
     bg = Image.new(image.mode, image.size, (0, 0, 0, 0))
     diff = ImageChops.difference(image, bg)
     diff = ImageChops.add(diff, diff, 2.0, -100)
@@ -34,10 +36,14 @@ class ImageSource:
         self.width = 0
         self.height = 0
 
-    def load(self):
+    def load(self, trim=True):
         img = Image.open(self.file_path)
-        self.file = trim(img)
-        img.close()
+
+        if trim:
+            self.file = trim_img(img)
+            img.close()
+        else:
+            self.file = img
 
         self.width = self.file.width
         self.height = self.file.height
@@ -46,7 +52,7 @@ class ImageSource:
 
     def assign_image(self, img, trimming=True):
         if trimming:
-            self.file = trim(img)
+            self.file = trim_img(img)
         else:
             self.file = img
 
@@ -73,7 +79,7 @@ class PSDSouce:
         self.scan_layer(psd_file.layers)
 
     def scan_layer(self, layers):
-        for i, layer in enumerate(layers):            
+        for i, layer in enumerate(layers):
             if layer.is_group():
                 self.scan_layer(layer.layers)
             else:
@@ -88,6 +94,7 @@ class PSDSouce:
                 pil_img.close()
 
                 self.images.append(image)
+
 
 class Atlas:
     def __init__(self, max_size=2048, padding=2):
@@ -204,7 +211,7 @@ class Atlas:
         else:
             return False
 
-    def save(self, file_name):
+    def save(self, file_name, trim=False):
         new_image = Image.new("RGBA", (self.max_size, self.max_size))
 
         for image in self.images.values():
@@ -212,10 +219,23 @@ class Atlas:
                             box=(image["left"], image["top"]))
             image["source"].close()
 
-        trimed_image = trim(new_image)
+        if trim:
+            trimed_image = trim_img(new_image)
+        else:
+            rightmost_left = 0
+            lowest_top = 0
+
+            for box in self.boxes:
+                if box[0] > rightmost_left:
+                    rightmost_left = box[0]
+                if box[1] > lowest_top:
+                    lowest_top = box[1]
+
+            trimed_image = new_image.crop((0, 0, rightmost_left, lowest_top))
+
         trimed_image.save(file_name)
-        new_image.close()
         trimed_image.close()
+        new_image.close()
 
 
 class AtlasMaker:
@@ -227,21 +247,19 @@ class AtlasMaker:
         self.images = []
         self.unused_images = set()
 
-    def add_images(self, *images):
+    def add_images(self, *images, trim=True):
         for image in images:
             if type(image) == str:
                 self.images.append(ImageSource(image))
-                self.images[-1].load()
+                self.images[-1].load(trim)
             elif type(image) == ImageSource:
                 if not image.loaded:
-                    image.load()
+                    image.load(trim)
 
                 self.images.append(image)
 
     def make(self):
         for image in self.images:
-            # image.file.save("test-%s.png" % random.randint(1, 100))
-            # print(image.width, image.height)
             placed = False
 
             if image.width > self.max_size or image.height > self.max_size:
@@ -259,11 +277,11 @@ class AtlasMaker:
                 else:
                     print_danger(f"Something wrong '{image.file_path}'")
 
-    def save(self):
+    def save(self, folder="", prefix="", trim=True):
         for i, atlas in enumerate(self.atlases):
-            file_name = f"sprites-{i}.png"
+            file_name = f"{prefix}{i}.png"
 
             try:
-                atlas.save(file_name)
+                atlas.save(os.path.join(os.getcwd(), folder, file_name), trim)
             except Exception:
                 logging.exception(f"{file_name} failed")
