@@ -3,10 +3,10 @@ import re
 import tkinter
 import subprocess
 from tkinter import filedialog, messagebox
-from atlas_maker import AtlasMaker, PSDSouce
+from .atlas_maker import AtlasMaker, PSDSouce
 import tkouter
 
-image_re = r".+\.png|.+\.jpg|.+\.jpeg"
+img_pattern = re.compile(r".+\.(?:(?:png)|(?:jpg)|(?:jpeg))")
 
 
 def clear():
@@ -103,7 +103,7 @@ class App:
             pass
         else:
             for filename in os.listdir(folder):
-                if bool(re.fullmatch(image_re, filename)):
+                if bool(img_pattern.fullmatch(filename)):
                     total_added += 1
                     self.images.append(os.path.join(folder, filename))
         print_success(total_added, "Images Added")
@@ -163,7 +163,7 @@ class ButtonsView(tkouter.TkOutWidget):
 
         total_added = 0
         for filename in os.listdir(folder):
-            if bool(re.fullmatch(image_re, filename)):
+            if bool(img_pattern.fullmatch(filename)):
                 path = os.path.join(folder, filename)
 
                 if path not in self.images:
@@ -183,7 +183,7 @@ class ButtonsView(tkouter.TkOutWidget):
         total_added = 0
         for root, _, filenames in os.walk(folder):
             for filename in filenames:
-                if bool(re.fullmatch(image_re, filename)):
+                if bool(img_pattern.fullmatch(filename)):
                     path = os.path.join(root, filename)
 
                     if path not in self.images:
@@ -289,7 +289,7 @@ class ListView(tkouter.TkOutWidget):
         return self.listbox.curselection()
 
 
-if __name__ == "__main__":
+def start_ui():
     root = tkinter.Tk()
     root.resizable(False, False)
     root.configure(background="#1B2126")
