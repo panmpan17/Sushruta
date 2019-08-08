@@ -124,7 +124,7 @@ class App:
 
 
 class ButtonsView(tkouter.TkOutWidget):
-    layout = "buttons.html"
+    layout = "html/buttons.html"
 
     max_size = tkouter.StringField(default='2048')
     padding = tkouter.StringField(default='2')
@@ -274,7 +274,7 @@ class ButtonsView(tkouter.TkOutWidget):
 
 
 class ListView(tkouter.TkOutWidget):
-    layout = "list.html"
+    layout = "html/list.html"
 
     def get(self, *args):
         return self.listbox.get(*args)
