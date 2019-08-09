@@ -13,14 +13,46 @@ This project is a free app that can produce spritesheet.
     - PSD tools
 
 ## Execute
+There's two way to execute the program, one is UI mode, another is console mode.<br>
+
+UI start:
+
 ```
-$ python main.py
+$ python controller ui
 ```
+
+![UI](docs/demo-1.png)
+
+### Console Mode
+```
+$ python controller console --help
+```
+
+#### Enviroment parameter
+
+```
+-i --images     | Add indivisual image
+-f --folders    | Scan the folder
+-t --trim       | Trim the image when loading in
+--trim-result   | Trim the out put atlas
+--result-folder | Result output folder path
+--prefix        | Atlas filename prefix
+```
+
+#### Example
+```
+$ python controller console -i image-1.png -i image-2.png
+```
+```
+$ python controller console -i image-1.png -f ~/Desktop -f ~/Document
+```
+```
+$ python controller console -i image-1.png -i image-2.png --prefix atlas-12345
+```
+
+#### Result
+![UI](docs/demo-2.png)
 
 #### More About Sprite Sheet
 [SpriteSheets Part.1 Stroage](https://www.youtube.com/watch?v=crrFUYabm6E) <br>
 [SpriteSheets Part.2 Performance](https://www.youtube.com/watch?v=_KyUqyS5MLA)
-
-#### Example
-![UI](docs/demo-1.png)
-![UI](docs/demo-2.png)
