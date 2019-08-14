@@ -277,11 +277,9 @@ class AtlasMaker:
                 else:
                     print_danger(f"Something wrong '{image.file_path}'")
 
-    def save(self, folder="", prefix="", trim=True):
+    def save(self, result_folder="", prefix="", trim=True):
         for i, atlas in enumerate(self.atlases):
-            file_name = f"{prefix}{i}.png"
-
             try:
-                atlas.save(os.path.join(os.getcwd(), folder, file_name), trim)
+                atlas.save(os.path.join(result_folder, f"{prefix}{i}.png"), trim)
             except Exception:
-                logging.exception(f"{file_name} failed")
+                logging.exception(f"{prefix}{i}.png failed")

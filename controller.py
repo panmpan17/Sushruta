@@ -6,6 +6,7 @@ from packer import AtlasMaker
 from packer.ui import start_ui
 
 
+DEFAULT_RESULT_FOLDER = os.path.join(os.getcwd(), "result")
 img_pattern = re.compile(r".+\.(?:(?:png)|(?:jpg)|(?:jpeg))")
 
 
@@ -19,24 +20,61 @@ def print_danger(text):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("method", default="console", nargs="?",
-                        choices=("console", "ui"))
-    parser.add_argument("-i", "--images", action="append", metavar="path",
-                        help="Image source path", default=[])
-    parser.add_argument("-f", "--folders", action="append", metavar="parh",
-                        help="Scane folder path", default=[])
-    parser.add_argument("-t", "--trim", action="store_true", default=False,
-                        help="Trim the image when loading")
-    parser.add_argument("--trim-result", action="store_true", default=False,
-                        help="Trim the result image")
-    parser.add_argument("--result-folder", default="result", metavar="path")
-    parser.add_argument("--prefix", default="atlas-", metavar="string")
+    sub_parsers = parser.add_subparsers(title="Avalible Functionality",
+                                        description="", help="",
+                                        dest="subparser")
+    atlas_parser = sub_parsers.add_parser("atlas")
+    split_parser = sub_parsers.add_parser("split")
+
+    # Atlas sub argument
+    atlas_parser.add_argument("-u", "--ui", action="store_true",
+                              help="Using UI mode", default=False)
+
+    atlas_parser.add_argument("-i", "--images", action="append",
+                              metavar="path", help="Images source path",
+                              default=[])
+    atlas_parser.add_argument("-f", "--folders", action="append",
+                              metavar="parh", help="Scan folders path",
+                              default=[])
+    atlas_parser.add_argument("-t", "--trim", action="store_true",
+                              default=False,
+                              help="Trim the image when loading")
+    atlas_parser.add_argument("-p", "--padding", type=int, default=3)
+
+    atlas_parser.add_argument("--trim-result", action="store_true",
+                              default=False,
+                              help="Trim the result image")
+    atlas_parser.add_argument("--result-folder", metavar="path",
+                              default=DEFAULT_RESULT_FOLDER)
+    atlas_parser.add_argument("--prefix", default="atlas-", metavar="string")
+
+    # Split sub argument
+    split_parser.add_argument("-i", "--image", metavar="path",
+                              help="Image source path")
+    split_parser.add_argument("--result-folder", metavar="path",
+                              default=DEFAULT_RESULT_FOLDER)
+
+    #normal
+    #count row, col
+    #size width, height
 
     args = parser.parse_args()
 
-    if args.method == "console":
+    if args.subparser is None:
+        parser.print_help()
+        exit()
+
+    if args.subparser == "split":
+        pass
+
+    elif args.ui:
+        os.chdir("packer")
+        start_ui()
+
+    else:
         if len(args.images) < 1 and len(args.folders) < 1:
-            print_danger("Must assign images, use -i [image path]")
+            print_danger("Must assign images, use -i [image path]\n")
+            parser.print_help()
             exit()
 
         images = []
@@ -57,16 +95,13 @@ if __name__ == "__main__":
                 if bool(img_pattern.fullmatch(file)):
                     images.append(os.path.join(folder, file))
 
-        maker = AtlasMaker(padding=0)
+        maker = AtlasMaker(padding=args.padding)
         maker.add_images(
             *images,
             trim=args.trim,
         )
 
         maker.make()
-        maker.save(folder=args.result_folder, prefix=args.prefix,
+        maker.save(result_folder=args.result_folder, prefix=args.prefix,
                    trim=args.trim_result)
 
-    else:
-        os.chdir("packer")
-        start_ui()
