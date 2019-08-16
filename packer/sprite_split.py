@@ -141,17 +141,36 @@ class ImageSpliter:
         row_size = int(img.width / row_num)
         col_size = int(img.height / col_num)
 
-        for row in range(row_num):
-            for col in range(col_num):
-                left, top = row * row_size, col * col_size
-                right, bottom = left + row_size, top + col_size
-                new_img = img.crop((left, top, right, bottom))
-                new_img.save(os.path.join(result_folder,
-                                          f"{file_name}-{row}-{col}.png"),
-                             "PNG")
-                new_img.close()
+        if file_name.endswith(".gif"):
+            file_name = file_name.replace(".gif", "")
 
-        img.close()
+            for row in range(row_num):
+                for col in range(col_num):
+                    left, top = row * row_size, col * col_size
+                    right, bottom = left + row_size, top + col_size
+
+                    gifs = []
+                    for i in range(img.n_frames):
+                        img.seek(i)
+                        new_img = img.crop((left, top, right, bottom))
+                        gifs.append(new_img)
+
+                    gifs[0].save(f"result/{file_name}-{row}-{col}.gif", format="GIF",
+                                 append_images=gifs[1:], save_all=True, duration=100,
+                                 loop=0, transparency=255, background=255, disposal=2)
+
+        else:
+            for row in range(row_num):
+                for col in range(col_num):
+                    left, top = row * row_size, col * col_size
+                    right, bottom = left + row_size, top + col_size
+                    new_img = img.crop((left, top, right, bottom))
+                    new_img.save(os.path.join(result_folder,
+                                              f"{file_name}-{row}-{col}.png"),
+                                 "PNG")
+                    new_img.close()
+
+            img.close()
 
     @classmethod
     def split_by_size(cls, file_name, width, height, result_folder=""):

@@ -52,6 +52,10 @@ $ python controller console -i image-1.png -i image-2.png --prefix atlas-12345
 
 #### Result
 ![UI](docs/demo-2.png)
+<img src="docs/test-0-0.gif" alt="drawing" width="100"/> <img src="docs/test-1-0.gif" alt="drawing" width="100"/><br>
+<img src="docs/test-0-1.gif" alt="drawing" width="100"/> <img src="docs/test-1-1.gif" alt="drawing" width="100"/>
+<!--![Emoji1](docs/test-0-0.gif =250x) ![Emoji1](docs/test-1-0.gif) <br>
+![Emoji1](docs/test-0-1.gif)![Emoji1](docs/test-1-1.gif)-->
 
 #### More About Sprite Sheet
 [SpriteSheets Part.1 Stroage](https://www.youtube.com/watch?v=crrFUYabm6E) <br>

@@ -2,7 +2,7 @@ import argparse
 import os
 import re
 
-from packer import AtlasMaker
+from packer import AtlasMaker, ImageSpliter 
 from packer.ui import start_ui
 
 
@@ -25,6 +25,8 @@ if __name__ == "__main__":
                                         dest="subparser")
     atlas_parser = sub_parsers.add_parser("atlas")
     split_parser = sub_parsers.add_parser("split")
+    sub_split_parsers = split_parser.add_subparsers(dest="splitsubargs")
+
 
     # Atlas sub argument
     atlas_parser.add_argument("-u", "--ui", action="store_true",
@@ -49,14 +51,18 @@ if __name__ == "__main__":
     atlas_parser.add_argument("--prefix", default="atlas-", metavar="string")
 
     # Split sub argument
-    split_parser.add_argument("-i", "--image", metavar="path",
+    split_parser.add_argument("image",
                               help="Image source path")
     split_parser.add_argument("--result-folder", metavar="path",
                               default=DEFAULT_RESULT_FOLDER)
+    split_count_parser = sub_split_parsers.add_parser("count")
+    split_size_parser = sub_split_parsers.add_parser("size")
 
-    #normal
-    #count row, col
-    #size width, height
+    split_count_parser.add_argument("row", type=int)
+    split_count_parser.add_argument("col", type=int)
+
+    split_size_parser.add_argument("width", type=int)
+    split_size_parser.add_argument("height", type=int)
 
     args = parser.parse_args()
 
@@ -65,7 +71,16 @@ if __name__ == "__main__":
         exit()
 
     if args.subparser == "split":
-        pass
+        if args.splitsubargs is None:
+            ImageSpliter.split(args.image, result_folder=args.result_folder)
+
+        elif args.splitsubargs == "count":
+            ImageSpliter.split_by_count(args.image, args.row, args.col,
+                                      result_folder=args.result_folder)
+
+        elif args.splitsubargs == "size":
+            ImageSpliter.split_by_size(args.image, args.width, args.height,
+                                     result_folder=args.result_folder)
 
     elif args.ui:
         os.chdir("packer")
