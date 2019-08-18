@@ -1,4 +1,4 @@
-# Atlas Maker
+# Susrhuta
 Sprite sheet 是常在遊戲開發用的的技術，把小圖片和在一起變成大圖，壓縮 CPU 和記憶體使用。<br>
 此專案是免費製作 Sprite sheet 的 UI 程式。
 
