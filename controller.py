@@ -2,8 +2,8 @@ import argparse
 import os
 import re
 
-from packer import AtlasMaker, ImageSpliter 
-from packer.ui import start_ui
+from sushruta import AtlasMaker, ImageSpliter 
+from sushruta.ui import start_ui
 
 
 DEFAULT_RESULT_FOLDER = os.path.join(os.getcwd(), "result")
