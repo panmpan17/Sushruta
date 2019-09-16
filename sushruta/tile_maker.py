@@ -20,7 +20,7 @@ class ImageTile:
         for x_count in range(math.ceil(width / img.width)):
             for y_count in range(math.ceil(height / img.height)):
                 new_img.paste(img,
-                                (x_count * img.width, y_count * img.height))
+                              (x_count * img.width, y_count * img.height))
 
         name = ".".join(file_name.split("/")[-1].split(".")[:-1])
         new_img.save(os.path.join(result_folder,
@@ -28,4 +28,3 @@ class ImageTile:
 
         img.close()
         new_img.close
-

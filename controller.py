@@ -26,8 +26,8 @@ if __name__ == "__main__":
     atlas_parser = sub_parsers.add_parser("atlas")
     split_parser = sub_parsers.add_parser("split")
     tile_parser = sub_parsers.add_parser("tile")
+    crop_parser = sub_parsers.add_parser("crop")
     sub_split_parsers = split_parser.add_subparsers(dest="splitsubargs")
-
 
     # Atlas sub argument
     atlas_parser.add_argument("-u", "--ui", action="store_true",
@@ -59,6 +59,7 @@ if __name__ == "__main__":
                               default=DEFAULT_RESULT_FOLDER)
     split_count_parser = sub_split_parsers.add_parser("count")
     split_size_parser = sub_split_parsers.add_parser("size")
+    sub_split_parsers.add_parser("region")
 
     split_count_parser.add_argument("row", type=int)
     split_count_parser.add_argument("col", type=int)
@@ -73,6 +74,15 @@ if __name__ == "__main__":
     tile_parser.add_argument("--result-folder", metavar="path",
                              default=DEFAULT_RESULT_FOLDER)
 
+    # Crop sub argument
+    crop_parser.add_argument("image", help="Image source path")
+    crop_parser.add_argument("x", type=int)
+    crop_parser.add_argument("y", type=int)
+    crop_parser.add_argument("width", type=int)
+    crop_parser.add_argument("height", type=int)
+    crop_parser.add_argument("--result-folder", metavar="path",
+                             default=DEFAULT_RESULT_FOLDER)
+
     args = parser.parse_args()
 
     if args.subparser is None:
@@ -80,7 +90,7 @@ if __name__ == "__main__":
         exit()
 
     if args.subparser == "split":
-        if args.splitsubargs is None:
+        if args.splitsubargs == "region":
             ImageSpliter.split(args.image, result_folder=args.result_folder)
 
         elif args.splitsubargs == "count":
@@ -94,6 +104,10 @@ if __name__ == "__main__":
     elif args.subparser == "tile":
         ImageTile.tile_by_size(args.image, args.width, args.height,
                                result_folder=args.result_folder)
+
+    elif args.subparser == "crop":
+        ImageSpliter.crop(args.image, args.x, args.y, args.width, args.width,
+                          result_folder=args.result_folder)
 
     elif args.ui:
         os.chdir("sushruta")

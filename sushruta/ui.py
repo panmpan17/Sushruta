@@ -1,7 +1,6 @@
 import os
 import re
 import tkinter
-import subprocess
 from tkinter import filedialog, messagebox
 from .atlas_maker import AtlasMaker, PSDSouce
 import tkouter

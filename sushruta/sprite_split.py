@@ -5,9 +5,16 @@ from PIL import Image, ImageDraw
 
 
 SIDE = ((-1, 0), (1, 0), (0, -1), (0, 1))
+AROUND = ((-1, -1), (0, -1), (1, -1),
+          (-1, 0), (0, 0), (1, 0),
+          (-1, 1), (0, 1), (1, 1))
 
 
 class ImageSpliter:
+    @classmethod
+    def get_img_name(cls, file_path):
+        return ".".join(file_path.split("/")[-1].split(".")[:-1])
+
     @classmethod
     def scan_region(cls, img, pos):
         pixels = set()
@@ -17,7 +24,7 @@ class ImageSpliter:
             pos = coords_unchecked.pop()
             pixels.add(pos)
 
-            for vec in SIDE:
+            for vec in AROUND:
                 new_pos = pos[0] + vec[0], pos[1] + vec[1]
 
                 if (img.width > new_pos[0] >= 0 and
@@ -94,7 +101,7 @@ class ImageSpliter:
         if bounds is not None:
             for bound in bounds:
                 draw.rectangle(bound,  # fill=(255, 0, 0, 25),
-                               outline=(255, 0, 0, 255), width=1)
+                               outline=(255, 0, 0, 255))
 
         del draw
 
@@ -106,43 +113,49 @@ class ImageSpliter:
         return (bound[0], bound[1]), img.crop(bound)
 
     @classmethod
-    def save_crops(cls, crops, file_name):
-        file_name = file_name.replace(".png", "")
-
+    def save_crops(cls, crops, file_name, result_folder):
         data = {}
         for i, (pos, crop) in enumerate(crops):
-            crop.save(f"{file_name}-{i}.png")
-            data[f"{file_name}-{i}.png"] = list(pos)
+            path = os.path.join(result_folder, file_name + f"_{i}.png")
+            try:
+                crop.save(path)
+            except SystemError:
+                os.remove(path)
+            data[path] = list(pos)
 
             crop.close()
 
-        json.dump(data, open(file_name + ".json", "w"))
+        json.dump(data, open(
+                  os.path.join(result_folder, file_name + ".json"), "w"))
 
     @classmethod
-    def split(cls, file_name, result_folder=""):
+    def split(cls, file_path, result_folder=""):
         try:
-            img = Image.open(file_name)
+            img = Image.open(file_path)
         except FileNotFoundError:
             return "File not exist"
 
+        # regions = cls.scan_regions(img)
+        # bounds = [cls.get_region_bound(region) for region in regions]
+        # cls.debug_draw(img, bounds=bounds, regions=regions)
         cls.save_crops([cls.crop_bound(img, cls.get_region_bound(region))
                         for region in cls.scan_regions(img)],
-                       os.path.join(result_folder, file_name))
+                       cls.get_img_name(file_path), result_folder)
 
         img.close()
 
     @classmethod
-    def split_by_count(cls, file_name, row_num, col_num, result_folder=""):
+    def split_by_count(cls, file_path, row_num, col_num, result_folder=""):
         try:
-            img = Image.open(file_name)
+            img = Image.open(file_path)
         except FileNotFoundError:
             return "File not exist"
 
         row_size = int(img.width / row_num)
         col_size = int(img.height / col_num)
 
-        if file_name.endswith(".gif"):
-            file_name = file_name.replace(".gif", "")
+        if file_path.endswith(".gif"):
+            file_path = file_path.replace(".gif", "")
 
             for row in range(row_num):
                 for col in range(col_num):
@@ -155,9 +168,12 @@ class ImageSpliter:
                         new_img = img.crop((left, top, right, bottom))
                         gifs.append(new_img)
 
-                    gifs[0].save(f"result/{file_name}-{row}-{col}.gif", format="GIF",
-                                 append_images=gifs[1:], save_all=True, duration=100,
-                                 loop=0, transparency=255, background=255, disposal=2)
+                    gifs[0].save(
+                        os.path.join(result_folder,
+                                     f"result/{file_path}-{row}-{col}.gif"),
+                        format="GIF", append_images=gifs[1:], save_all=True,
+                        duration=100, loop=0, transparency=255,
+                        background=255, disposal=2)
 
         else:
             for row in range(row_num):
@@ -166,23 +182,23 @@ class ImageSpliter:
                     right, bottom = left + row_size, top + col_size
                     new_img = img.crop((left, top, right, bottom))
                     new_img.save(os.path.join(result_folder,
-                                              f"{file_name}-{row}-{col}.png"),
+                                              f"{file_path}-{row}-{col}.png"),
                                  "PNG")
                     new_img.close()
 
             img.close()
 
     @classmethod
-    def split_by_size(cls, file_name, width, height, result_folder=""):
+    def split_by_size(cls, file_path, width, height, result_folder=""):
         try:
-            img = Image.open(file_name)
+            img = Image.open(file_path)
         except FileNotFoundError:
             return "File not exist"
 
         if img.height > height:
             return
 
-        short_file_name = ".".join(file_name.split("/")[-1].split(".")[:-1])
+        file_name = cls.get_img_name(file_path)
 
         offsetX = 0
         i = 0
@@ -191,19 +207,53 @@ class ImageSpliter:
             if new_width >= img.width:
                 new_img = img.crop((offsetX, 0, img.width, img.height))
                 new_img.save(os.path.join(result_folder,
-                                          f"{short_file_name}-{i}.png"),
+                                          f"{file_name}-{i}.png"),
                              "PNG")
                 new_img.close()
                 break
 
             new_img = img.crop((offsetX, 0, new_width, img.height))
             new_img.save(os.path.join(result_folder,
-                                      f"{short_file_name}-{i}.png"),
+                                      f"{file_name}-{i}.png"),
                          "PNG")
 
             new_img.close()
             offsetX += width
             i += 1
+
+    @classmethod
+    def crop(cls, file_path, x, y, width, height, result_folder=""):
+        try:
+            img = Image.open(file_path)
+        except FileNotFoundError:
+            return "File not exist"
+
+        file_name = cls.get_img_name(file_path)
+
+        if file_path.endswith(".gif"):
+            file_path = file_path.replace(".gif", "")
+
+            gifs = []
+            for i in range(img.n_frames):
+                img.seek(i)
+                new_img = img.crop((x, y, x + width, y + height))
+                gifs.append(new_img)
+
+            gifs[0].save(
+                os.path.join(result_folder,
+                             f"{file_name}-{x},{y},{width},{height}.gif"),
+                format="GIF", append_images=gifs[1:], save_all=True,
+                duration=100, loop=0, transparency=0, background=255,
+                disposal=3)
+
+        else:
+            new_img = img.crop((x, y, x + width, y + height))
+            new_img.save(
+                os.path.join(result_folder,
+                             f"{file_name}-{x},{y},{width},{height}.png"),
+                "PNG")
+            new_img.close()
+        img.close()
 
 
 if __name__ == "__main__":

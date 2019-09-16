@@ -280,6 +280,7 @@ class AtlasMaker:
     def save(self, result_folder="", prefix="", trim=True):
         for i, atlas in enumerate(self.atlases):
             try:
-                atlas.save(os.path.join(result_folder, f"{prefix}{i}.png"), trim)
+                atlas.save(os.path.join(result_folder,
+                                        f"{prefix}{i}.png"), trim)
             except Exception:
                 logging.exception(f"{prefix}{i}.png failed")
