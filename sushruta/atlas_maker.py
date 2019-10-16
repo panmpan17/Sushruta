@@ -2,7 +2,6 @@ import logging
 import os
 
 from PIL import Image, ImageChops
-from psd_tools import PSDImage
 
 
 def print_danger(text):
@@ -74,6 +73,7 @@ class PSDSouce:
         self.images = []
 
     def load(self):
+        from psd_tools import PSDImage
         psd_file = PSDImage.load(self.file_path)
 
         self.scan_layer(psd_file.layers)
