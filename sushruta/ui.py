@@ -15,6 +15,8 @@ class ButtonsView(tkouter.TkOutWidget):
     padding = tkouter.StringField(default='2')
     trimming = tkouter.BoolField(default=True)
 
+    dialog_initdir = os.getcwd()
+
     def __init__(self, *args, **kwargs):
         self.list_view = None
         self.images = set()
@@ -26,9 +28,12 @@ class ButtonsView(tkouter.TkOutWidget):
 
     def add_images(self, *args):
         filenames = filedialog.askopenfilenames(
-            initialdir=os.getcwd(),
+            initialdir=ButtonsView.dialog_initdir,
             title="Select Image",
             filetypes=(("Png", "*.png"), ("Jpg", "*.jpg"), ("Jpeg", "*.jpeg")))
+
+        if len(self.images) > 0:
+            ButtonsView.dialog_initdir = os.path.dirname(filenames[0])
 
         total_added = 0
         for filename in filenames:
@@ -44,7 +49,11 @@ class ButtonsView(tkouter.TkOutWidget):
 
     def scan_directory(self, *args):
         folder = filedialog.askdirectory(
-            title="Select Directory to Scan Images")
+            title="Select Directory to Scan Images",
+            initialdir=ButtonsView.dialog_initdir)
+
+        if folder != "":
+            ButtonsView.dialog_initdir = folder
 
         total_added = 0
         for filename in os.listdir(folder):
@@ -63,7 +72,11 @@ class ButtonsView(tkouter.TkOutWidget):
 
     def scan_directory_deep(self, *args):
         folder = filedialog.askdirectory(
-            title="Select Directory to Scan Images")
+            title="Select Directory to Scan Images",
+            initialdir=ButtonsView.dialog_initdir)
+
+        if folder != "":
+            ButtonsView.dialog_initdir = folder
 
         total_added = 0
         for root, _, filenames in os.walk(folder):
@@ -83,9 +96,12 @@ class ButtonsView(tkouter.TkOutWidget):
 
     def export_psd(self, *args):
         filenames = filedialog.askopenfilenames(
-            initialdir=os.getcwd(),
+            initialdir=ButtonsView.dialog_initdir,
             title="Select PSD file",
             filetypes=(("PSD", "*.psd"), ))
+
+        if len(filenames) > 0:
+            ButtonsView.dialog_initdir = os.path.dirname(filenames[0])
 
         try:
             max_size = int(self.max_size)
@@ -140,6 +156,13 @@ class ButtonsView(tkouter.TkOutWidget):
             self.export_btn.config(state="disabled")
 
     def export(self, *args):
+        folder = filedialog.askdirectory(
+            title="Select Export Destination",
+            initialdir=ButtonsView.dialog_initdir)
+
+        if folder != "":
+            ButtonsView.dialog_initdir = folder
+
         try:
             max_size = int(self.max_size)
         except ValueError:
@@ -150,9 +173,9 @@ class ButtonsView(tkouter.TkOutWidget):
             padding = 2
 
         maker = AtlasMaker(max_size, padding)
-        maker.add_images(*self.images)
+        maker.add_images(*self.images, trim=self.trimming)
         maker.make()
-        maker.save()
+        maker.save(folder, prefix="atlas-", trim=self.trimming)
 
     def quit(self, *args):
         exit()
@@ -177,7 +200,7 @@ class ListView(tkouter.TkOutWidget):
 def start_ui():
     root = tkinter.Tk()
     root.resizable(False, False)
-    root.configure(background="#1B2126")
+    root.configure()
 
     buttons_view = ButtonsView(root)
     list_view = ListView(root)

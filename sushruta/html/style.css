@@ -3,10 +3,6 @@ body, left, top, label {
 	highlightbackground: #1B2126;
 }
 
-.btn {
-	cursor: hand2;
-}
-
 .btn, entry {
 	highlightbackground: #1B2126;
 	background: #21313f;

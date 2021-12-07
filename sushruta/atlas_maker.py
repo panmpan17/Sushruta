@@ -1,5 +1,7 @@
 import logging
 import os
+# from tkinter.filedialog import Directory
+from typing import Dict, List
 
 from PIL import Image, ImageChops
 
@@ -101,7 +103,7 @@ class Atlas:
         self.max_size = max_size
         self.padding = padding
 
-        self.images = {}
+        self.images: Dict[str, ImageSource] = {}
         self.images_name = {}
 
         self.boxes = [(0, 0, max_size, max_size)]
@@ -167,7 +169,7 @@ class Atlas:
 
         self.boxes.append((left, top, right, bottom))
 
-    def add_image(self, new_img):
+    def add_image(self, new_img: ImageSource) -> bool:
         """
         Place image in the box
         """
@@ -243,11 +245,11 @@ class AtlasMaker:
         self.max_size = max_size
         self.padding = padding
 
-        self.atlases = []
-        self.images = []
+        self.atlases: List[Atlas] = []
+        self.images: List[ImageSource] = []
         self.unused_images = set()
 
-    def add_images(self, *images, trim=True):
+    def add_images(self, *images, trim=False):
         for image in images:
             if type(image) == str:
                 self.images.append(ImageSource(image))
