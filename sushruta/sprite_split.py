@@ -170,10 +170,10 @@ class ImageSpliter:
 
                     gifs[0].save(
                         os.path.join(result_folder,
-                                     f"{file_path}-{row}-{col}.gif"),
+                                        f"{file_path}-{row}-{col}.gif"),
                         format="GIF", append_images=gifs[1:], save_all=True,
                         duration=100, loop=0, transparency=0,
-                        background=100, disposal=25)
+                        background=100, disposal=3)
 
         else:
             for row in range(row_num):
