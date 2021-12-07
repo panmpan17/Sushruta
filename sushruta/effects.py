@@ -1,4 +1,5 @@
 import random
+import os
 
 from PIL import Image  # , ImageDraw
 
@@ -19,58 +20,61 @@ def find_surround(_map, x, y):
     return surrounds
 
 
-img = Image.open("reference.jpg")
-image = img.convert("RGBA")
-img.close()
+class BorderBlurHandler:
+    def __init__(self, file_path, destination_folder) -> None:
+        self.file_path = file_path
+        self.destination_folder = destination_folder
 
-points = set()
-alpha_map = [[255 for e in range(image.width)] for i in range(image.height)]
+        original_image = Image.open(file_path)
+        self.image = original_image.convert("RGBA")
+        original_image.close()
 
-for x in range(image.width):
-    for y in range(50):
-        chance = random.randint(0, 50)
-        if chance < (55 - y * 1.7):
-            points.add((x, y))
+        self.points = set()
+        self.alpha_map = [[255 for e in range(self.image.width)] for i in range(self.image.height)]
+    
+    def start(self):
+        for x in range(self.image.width):
+            for y in range(50):
+                chance = random.randint(0, 50)
+                if chance < (55 - y * 1.7):
+                    self.points.add((x, y))
 
-    miny = image.height - 50
-    for y in range(miny, image.height):
-        chance = random.randint(0, 50)
-        if chance < (55 - (50 - y + miny)):
-            points.add((x, y))
+            miny = self.image.height - 50
+            for y in range(miny, self.image.height):
+                chance = random.randint(0, 50)
+                if chance < (55 - (50 - y + miny)):
+                    self.points.add((x, y))
 
-for y in range(image.height):
-    for x in range(50):
-        chance = random.randint(0, 50)
-        if chance < (55 - x * 1.7):
-            points.add((x, y))
+        for y in range(self.image.height):
+            for x in range(50):
+                chance = random.randint(0, 50)
+                if chance < (55 - x * 1.7):
+                    self.points.add((x, y))
 
-    minx = image.width - 50
-    for x in range(minx, image.width):
-        chance = random.randint(0, 50)
-        if chance < (55 - (50 - x + minx)):
-            points.add((x, y))
+            minx = self.image.width - 50
+            for x in range(minx, self.image.width):
+                chance = random.randint(0, 50)
+                if chance < (55 - (50 - x + minx)):
+                    self.points.add((x, y))
 
-for pos in points:
-    for x in range(pos[0] - 1, pos[0] + 2):
-        for y in range(pos[1] - 1, pos[1] + 2):
-            if (x >= 0 and y >= 0 and x < image.width and y < image.height):
-                alpha_map[y][x] *= 0.5
+        for point in self.points:
+            for x in range(point[0] - 1, point[0] + 2):
+                for y in range(point[1] - 1, point[1] + 2):
+                    if (x >= 0 and y >= 0 and x < self.image.width and y < self.image.height):
+                        self.alpha_map[y][x] *= 0.5
 
-for _ in range(3):
-    for y, row in enumerate(alpha_map):
-        for x, num in enumerate(row):
-            nums = find_surround(alpha_map, x, y)
-            alpha_map[y][x] = sum(nums) / len(nums)
+        for _ in range(3):
+            for y, row in enumerate(self.alpha_map):
+                for x, num in enumerate(row):
+                    nums = find_surround(self.alpha_map, x, y)
+                    self.alpha_map[y][x] = sum(nums) / len(nums)
 
-# new_img = Image.new("RGB", image.size)
-for y, row in enumerate(alpha_map):
-    for x, num in enumerate(row):
-        color = list(image.getpixel((x, y)))
-        color[3] = int(num)
-        image.putpixel((x, y), tuple(color))
+        for y, row in enumerate(self.alpha_map):
+            for x, num in enumerate(row):
+                color = list(self.image.getpixel((x, y)))
+                color[3] = int(num)
+                self.image.putpixel((x, y), tuple(color))
 
-# new_img.save("test-2.png")
-# new_img.close()
-
-image.save("test-2.png")
-image.close()
+    def save(self, file_name):
+        self.image.save(os.path.join(self.destination_folder, file_name))
+        self.image.close()

@@ -2,7 +2,8 @@ import argparse
 import os
 import re
 
-from sushruta import AtlasMaker, ImageSpliter, ImageTile, Manipulator
+from sushruta import AtlasMaker, ImageSpliter, ImageTile, Manipulator,\
+                     PSDSplitter, BorderBlurHandler
 from sushruta.ui import start_ui
 
 
@@ -32,6 +33,8 @@ class Controller:
         split_parser = sub_parsers.add_parser("split")
         tile_parser = sub_parsers.add_parser("tile")
         crop_parser = sub_parsers.add_parser("crop")
+        psd_parser = sub_parsers.add_parser("psd-split")
+        blur_border_parser = sub_parsers.add_parser("blur-border")
         tune_multiplier_parser = sub_parsers.add_parser("tune-multiplier")
         sub_split_parsers = split_parser.add_subparsers(dest="splitsubargs")
 
@@ -104,6 +107,17 @@ class Controller:
         tune_multiplier_parser.add_argument("--result-folder", metavar="path",
                                             default=DEFAULT_RESULT_FOLDER)
 
+        # PSD split argument
+        psd_parser.add_argument("psd", help="Photoshop file source path")
+        psd_parser.add_argument("--result-folder", metavar="path",
+                                default=DEFAULT_RESULT_FOLDER)
+
+        # Blur border arguemtn
+        blur_border_parser.add_argument("image", help="Image source path")
+        blur_border_parser.add_argument("result", help="Result image name")
+        blur_border_parser.add_argument("--result-folder", metavar="path",
+                                        default=DEFAULT_RESULT_FOLDER)
+
         self.args = self.parser.parse_args()
 
     def analyze_args(self):
@@ -125,7 +139,16 @@ class Controller:
                               result_folder=self.args.result_folder)
 
         elif self.args.subparser == "tune-multiplier":
-            self.handler_tune_multiplier()
+            self.handle_tune_multiplier()
+
+        elif self.args.subparser == "psd-split":
+            splitter = PSDSplitter(self.args.psd, self.args.result_folder)
+            splitter.start()
+
+        elif self.args.subparser == "blur-border":
+            handler = BorderBlurHandler(self.args.image, self.args.result_folder)
+            handler.start()
+            handler.save(self.args.result)
 
         elif self.args.ui:
             os.chdir("sushruta")
@@ -152,7 +175,7 @@ class Controller:
         else:
             self.parser.print_help()
 
-    def handler_tune_multiplier(self):
+    def handle_tune_multiplier(self):
         Manipulator.tune_multiplier(self.args.image,
                                     (self.args.red, self.args.green,
                                      self.args.blue, self.args.alpha),
