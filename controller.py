@@ -3,8 +3,7 @@ import os
 import re
 
 from sushruta import AtlasMaker, ImageSpliter, ImageTile, Manipulator,\
-                     PSDSplitter, BorderBlurHandler
-from sushruta.ui import start_ui
+                     BorderBlurHandler
 
 
 DEFAULT_RESULT_FOLDER = os.path.join(os.getcwd(), "result")
@@ -142,6 +141,7 @@ class Controller:
             self.handle_tune_multiplier()
 
         elif self.args.subparser == "psd-split":
+            from sushruta.psd_split import PSDSplitter
             splitter = PSDSplitter(self.args.psd, self.args.result_folder)
             splitter.start()
 
@@ -151,6 +151,7 @@ class Controller:
             handler.save(self.args.result)
 
         elif self.args.ui:
+            from sushruta.ui import start_ui
             os.chdir("sushruta")
             start_ui()
 
